@@ -1,0 +1,15 @@
+torch
+onnx
+tensorflow
+tensorflow_probability==0.19.0
+tensorflow-addons
+scikit-learn
+pandas
+numpy
+datasets
+tensorflowjs
+onnx2tf
+onnx-graphsurgeon
+psutil
+sng4onnx
+onnxsim
