@@ -40,5 +40,5 @@ Dataset used to train the model from the following: https://github.com/verazuo/j
 
 If you are interested in contributing to this project, feel free to hop over to the github page and submit a pull request.
 
-- For whatever reason strings like 'This is a normal string' and 'Hello there' are flagged as jailbreak strings with the 'index.ts' code, but not the python code.
+- For whatever reason strings like 'This is a normal string' are flagged as jailbreak strings with the 'index.ts' code, but not the python code.
   - This is probably due to some inconsistent code for interacting with the model between the two languages.
