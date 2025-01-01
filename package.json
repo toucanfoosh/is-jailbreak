@@ -1,7 +1,7 @@
 {
-  "name": "is-jailbreak",
-  "version": "1.0.0",
-  "description": "A simple package to determine if a string is a jailbreak string or not.",
+  "name": "llm-jailbreak",
+  "version": "1.0.3",
+  "description": "A simple package to determine if a string is likely to be a jailbreak string for an llm or not.",
   "main": "dist/index.js",
   "files": [
     "dist/**/*"
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/toucanfoosh/is-jailbreak"
+    "url": "git+https://github.com/toucanfoosh/llm-jailbreak"
   },
   "keywords": [
     "llm",
