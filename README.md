@@ -1,4 +1,4 @@
-# is-jailbreak README
+# llm-jailbreak README
 
 This is a simple package that uses a machine learning model to determine if a string is a jailbreak string or not.
 
