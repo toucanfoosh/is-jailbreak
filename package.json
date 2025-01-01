@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "test": "jest",
-    "build": "tsc && cp src/*.json dist/"
+    "build": "tsc && cp src/*.json dist/ && cp src/*.bin dist/",
+    "extract": "cd dev && node extract_model.js && cd .."
   },
   "keywords": [],
   "author": "",

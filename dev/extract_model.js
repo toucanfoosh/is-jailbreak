@@ -18,8 +18,8 @@ if (modelJson.weightsManifest && Array.isArray(modelJson.weightsManifest)) {
 }
 
 // Write them to separate JSON files for convenience
-fs.writeFileSync("../src/modelTopology.json", JSON.stringify(modelTopology));
-fs.writeFileSync("../src/weightSpecs.json", JSON.stringify(weightSpecs));
+// fs.writeFileSync("../src/modelTopology.json", JSON.stringify(modelTopology));
+// fs.writeFileSync("../src/weightSpecs.json", JSON.stringify(weightSpecs));
 
 console.log("Extracted modelTopology.json and weightSpecs.json");
 
@@ -36,10 +36,10 @@ let combined = Buffer.concat(buffers, totalLength);
 let base64Str = combined.toString("base64");
 
 // 4) Save to a JSON file
-fs.writeFileSync(
-    "../src/weightDataBase64.json",
-    JSON.stringify(base64Str)
-);
+// fs.writeFileSync(
+//     "../src/weightDataBase64.json",
+//     JSON.stringify(base64Str)
+// );
 
 console.log("Created weightDataBase64.json");
 
@@ -47,10 +47,10 @@ console.log("Created weightDataBase64.json");
 fs.copyFileSync("./models/tfidf_vocab.json", "../src/tfidf_vocab.json");
 
 // Copy js_graph_model dir to src
-// const srcDir = "../src/js_graph_model";
-// if (!fs.existsSync(srcDir)) {
-//     fs.mkdirSync(srcDir);
-// }
-// fs.readdirSync("./models/js_graph_model").forEach((f) => {
-//     fs.copyFileSync(`./models/js_graph_model/${f}`, `${srcDir}/${f}`);
-// });
+const srcDir = "../src";
+if (!fs.existsSync(srcDir)) {
+    fs.mkdirSync(srcDir);
+}
+fs.readdirSync("./models/js_graph_model").forEach((f) => {
+    fs.copyFileSync(`./models/js_graph_model/${f}`, `${srcDir}/${f}`);
+});

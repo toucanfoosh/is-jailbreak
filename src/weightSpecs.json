@@ -1,1 +1,0 @@
-[{"name":"PartitionedCall/PartitionedCall/model/flatten/Const","shape":[2],"dtype":"int32"},{"name":"unknown","shape":[10000,128],"dtype":"float32"},{"name":"unknown_1","shape":[128],"dtype":"float32"},{"name":"unknown_2","shape":[128,2],"dtype":"float32"},{"name":"unknown_4","shape":[2],"dtype":"float32"}]
