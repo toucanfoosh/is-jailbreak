@@ -1,6 +1,6 @@
 # llm-jailbreak README
 
-This is a simple package that uses a machine learning model to determine if a string is a jailbreak string or not.
+This is a simple package that uses a machine learning model to determine if a string is a jailbreak string for an llm or not.
 
 ## Usage
 
