@@ -1,199 +1,91 @@
-import * as tf from "@tensorflow/tfjs-node";
+import * as tf from "@tensorflow/tfjs";
+import * as tfn from "@tensorflow/tfjs-node";
 import * as fs from "fs";
-
-// Type definitions for the TF-IDF metadata
-interface TfidfMetadata {
-  vocabulary: { [key: string]: number };
-  idf: number[];
-  ngram_range: [number, number];
-  max_features: number;
-  stop_words: string | null;
-  lowercase: boolean;
-}
+import * as path from "path";
 
 let model: tf.GraphModel | null = null;
-let tfidfMetadata: TfidfMetadata | null = null;
+let tfidfMeta: any | null = null;
+
+// Resolve paths relative to the current module
+const modelsDir = path.join(__dirname, "../models");
+const tfidfMetaPath = path.join(modelsDir, "tfidf_vocab.json");
+const modelPath = path.join(modelsDir, "model.json");
 
 /**
- * Loads the pre-trained TensorFlow.js model from the specified path.
- */
-async function loadModel(): Promise<void> {
-  if (!model) {
-    try {
-      console.log("Loading model from path:", `file://${__dirname}/model.json`);
-      model = await tf.loadGraphModel(`file://${__dirname}/model.json`);
-      console.log("Model loaded successfully.");
-    } catch (error) {
-      console.error("Error loading the model:", error);
-    }
-  } else {
-    console.log("Model is already loaded.");
-  }
-}
-
-/**
- * Loads the TF-IDF metadata from a JSON file.
- */
-function loadTfidfMetadata(): void {
-  try {
-    const metadataRaw = fs.readFileSync(
-      `${__dirname}/tfidf_vocab.json`,
-      "utf-8"
-    );
-    tfidfMetadata = JSON.parse(metadataRaw) as TfidfMetadata;
-    console.log("TF-IDF metadata loaded successfully.");
-  } catch (error) {
-    console.error("Error loading TF-IDF metadata:", error);
-  }
-}
-
-/**
- * Loads the pre-trained model and TF-IDF metadata.
+ * Loads the TF.js model and prepares it for use.
  */
 export async function loadJailbreak(): Promise<void> {
-  await loadModel();
-  loadTfidfMetadata();
-}
-
-/**
- * Preprocesses a string prompt into a tensor for classification.
- *
- * @param prompt - The input string prompt.
- * @returns A tensor suitable for model prediction.
- */
-function preprocessPrompt(prompt: string): tf.Tensor {
-  if (!tfidfMetadata) {
-    throw new Error(
-      "TF-IDF metadata not loaded. Call loadTfidfMetadata() first."
-    );
-  }
-
-  // Lowercase the input text
-  let processedText = prompt;
-  if (tfidfMetadata.lowercase) {
-    processedText = processedText.toLowerCase();
-  }
-
-  // Generate n-grams
-  const tokens = processedText.split(/\s+/); // Tokenize by whitespace
-  const ngrams = generateNgrams(tokens, tfidfMetadata.ngram_range);
-
-  // Map n-grams to vocabulary indices
-  const featureVector = new Array(tfidfMetadata.max_features).fill(0);
-  for (const ngram of ngrams) {
-    const index = tfidfMetadata.vocabulary[ngram];
-    if (index !== undefined && index < tfidfMetadata.max_features) {
-      featureVector[index] += 1; // Term frequency (TF)
-    }
-  }
-
-  // Apply IDF weights
-  const transformedVector = featureVector.map(
-    (tf, index) => tf * tfidfMetadata!.idf[index]
-  );
-
-  // Convert to a 2D tensor (required by the model)
-  return tf.tensor2d([transformedVector], [1, tfidfMetadata.max_features]);
-}
-
-/**
- * Generates n-grams from tokens based on a specified range.
- *
- * @param tokens - The array of tokens (words).
- * @param ngramRange - The range of n-grams to generate (e.g., [1, 3]).
- * @returns An array of n-grams.
- */
-function generateNgrams(
-  tokens: string[],
-  ngramRange: [number, number]
-): string[] {
-  const [minN, maxN] = ngramRange;
-  const ngrams: string[] = [];
-
-  for (let n = minN; n <= maxN; n++) {
-    for (let i = 0; i <= tokens.length - n; i++) {
-      ngrams.push(tokens.slice(i, i + n).join(" "));
-    }
-  }
-
-  return ngrams;
-}
-
-/**
- * Classifies a given prompt using the loaded model.
- *
- * @param input - Preprocessed input data.
- * @returns Model prediction.
- */
-export async function classify(input: tf.Tensor): Promise<tf.Tensor | null> {
   if (!model) {
-    console.error("Model not loaded. Call loadModel() first.");
-    return null;
-  }
+    try {
+      // Load TF-IDF metadata
+      if (!tfidfMeta) {
+        const metaData = fs.readFileSync(tfidfMetaPath, "utf-8");
+        tfidfMeta = JSON.parse(metaData);
+        console.log("TF-IDF metadata loaded successfully");
+      }
 
-  try {
-    console.log("Preprocessed Input Tensor:", input.arraySync());
-    const prediction = model.predict(input) as tf.Tensor;
-    return prediction;
-  } catch (error) {
-    console.error("Error during prediction:", error);
-    return null;
+      // Load the model
+      console.log("Loading model from:", modelPath);
+      const handler = tfn.io.fileSystem(modelPath);
+      model = await tf.loadGraphModel(handler);
+      console.log("Jailbreak model loaded successfully");
+    } catch (error) {
+      console.error("Error loading the model or metadata:", error);
+      throw new Error("Failed to load model or metadata.");
+    }
   }
 }
 
 /**
- * Determines if a given prompt is classified as a jailbreak.
- *
- * @param prompt - The string prompt to evaluate.
- * @param threshold - A confidence threshold between 0 and 1 (inclusive).
- * @returns A boolean indicating whether the prompt exceeds the threshold.
+ * Preprocesses input text using the TF-IDF vocabulary and configuration.
+ * @param input The input string to preprocess.
+ * @returns A tensor representation of the input.
  */
-export async function isJailbreak(
-  prompt: string,
-  threshold: number = 0.5
-): Promise<boolean> {
-  if (threshold < 0 || threshold > 1) {
-    throw new Error("Threshold must be between 0 and 1 (inclusive).");
+function preprocessInput(input: string): tf.Tensor {
+  if (!tfidfMeta) {
+    throw new Error("TF-IDF metadata not loaded. Call loadJailbreak() first.");
   }
 
-  console.log(`Evaluating prompt: "${prompt}" with threshold: ${threshold}`);
+  const { vocabulary, ngram_range, max_features, idf } = tfidfMeta;
+  const tokens = input.toLowerCase().split(/\W+/);
+  const featureVector = new Array(max_features).fill(0);
 
-  if (!model) {
-    console.error("Model not loaded. Call loadModel() first.");
-    return false;
-  }
-
-  if (!tfidfMetadata) {
-    console.error(
-      "TF-IDF metadata not loaded. Call loadTfidfMetadata() first."
-    );
-    return false;
-  }
-
-  try {
-    // Preprocess the prompt
-    const preprocessedInput = preprocessPrompt(prompt);
-
-    // Get the classification result
-    const prediction = await classify(preprocessedInput);
-
-    if (prediction) {
-      // Extract the confidence score for the "jailbreak" class
-      const probabilities = prediction.arraySync() as number[][];
-      console.log("Probabilities:", probabilities);
-      const jailbreakConfidence = probabilities[0][1]; // Adjust index if needed
-
-      console.log(
-        `Jailbreak confidence: ${jailbreakConfidence}, Decision: ${
-          jailbreakConfidence > threshold
-        }`
-      );
-      return jailbreakConfidence > threshold;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    for (let n = ngram_range[0]; n <= ngram_range[1]; n++) {
+      if (i + n - 1 < tokens.length) {
+        const ngram = tokens.slice(i, i + n).join(" ");
+        if (vocabulary[ngram] !== undefined) {
+          featureVector[vocabulary[ngram]] += 1;
+        }
+      }
     }
-
-    return false;
-  } catch (error) {
-    console.error("Error in isJailbreak:", error);
-    return false;
   }
+
+  for (let i = 0; i < featureVector.length; i++) {
+    featureVector[i] *= idf[i] || 0;
+  }
+
+  return tf.tensor2d([featureVector], [1, max_features]);
+}
+
+/**
+ * Determines if the given input string is a jailbreak prompt.
+ * @param input The input string to analyze.
+ * @returns A promise resolving to a boolean indicating jailbreak detection.
+ */
+export async function isJailbreak(input: string): Promise<boolean> {
+  if (!model) {
+    throw new Error("Model not loaded. Call loadJailbreak() first.");
+  }
+
+  const inputTensor = preprocessInput(input);
+  const prediction = model.predict(inputTensor) as tf.Tensor;
+  const probabilities = await prediction.softmax().data();
+
+  inputTensor.dispose();
+  prediction.dispose();
+
+  // Assume index 1 corresponds to "jailbreak"
+  return probabilities[1] > 0.5;
 }

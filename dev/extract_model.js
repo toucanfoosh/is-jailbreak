@@ -18,8 +18,8 @@ if (modelJson.weightsManifest && Array.isArray(modelJson.weightsManifest)) {
 }
 
 // Write them to separate JSON files for convenience
-// fs.writeFileSync("../src/modelTopology.json", JSON.stringify(modelTopology));
-// fs.writeFileSync("../src/weightSpecs.json", JSON.stringify(weightSpecs));
+// fs.writeFileSync("../models/modelTopology.json", JSON.stringify(modelTopology));
+// fs.writeFileSync("../models/weightSpecs.json", JSON.stringify(weightSpecs));
 
 console.log("Extracted modelTopology.json and weightSpecs.json");
 
@@ -37,17 +37,17 @@ let base64Str = combined.toString("base64");
 
 // 4) Save to a JSON file
 // fs.writeFileSync(
-//     "../src/weightDataBase64.json",
+//     "../models/weightDataBase64.json",
 //     JSON.stringify(base64Str)
 // );
 
 console.log("Created weightDataBase64.json");
 
 // Copy tfidf_vocab over to src
-fs.copyFileSync("./models/tfidf_vocab.json", "../src/tfidf_vocab.json");
+fs.copyFileSync("./models/tfidf_vocab.json", "../models/tfidf_vocab.json");
 
 // Copy js_graph_model dir to src
-const srcDir = "../src";
+const srcDir = "../models";
 if (!fs.existsSync(srcDir)) {
     fs.mkdirSync(srcDir);
 }
