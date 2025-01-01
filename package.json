@@ -1,25 +1,37 @@
 {
   "name": "is-jailbreak",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple package to determine if a string is a jailbreak string or not.",
   "main": "dist/index.js",
   "files": [
     "dist/**/*"
   ],
   "scripts": {
     "test": "jest",
-    "build": "tsc && node copyModels.js",
-    "extract": "cd dev && node extract_model.js && cd .."
+    "extract": "cd dev && node extract_model.js && cd ..",
+    "build": "npm run extract && tsc"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toucanfoosh/is-jailbreak"
+  },
+  "keywords": [
+    "llm",
+    "jailbreak",
+    "prompt",
+    "hack",
+    "DAN"
+  ],
+  "author": "Daniel Wu",
+  "license": "MIT",
   "dependencies": {
     "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-layers": "^4.22.0",
     "@tensorflow/tfjs-node": "^4.22.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.26.4",
+    "@babel/core": "^7.26.0",
     "@types/jest": "^29.5.14",
     "@types/stopword": "^2.0.3",
     "fs-extra": "^11.2.0",

@@ -7,7 +7,7 @@ let model: tf.GraphModel | null = null;
 let tfidfMeta: any | null = null;
 
 // Resolve paths relative to the current module
-const modelsDir = path.join(__dirname, "../models");
+const modelsDir = path.join(__dirname, "../dist/models");
 const tfidfMetaPath = path.join(modelsDir, "tfidf_vocab.json");
 const modelPath = path.join(modelsDir, "model.json");
 
@@ -21,14 +21,14 @@ export async function loadJailbreak(): Promise<void> {
       if (!tfidfMeta) {
         const metaData = fs.readFileSync(tfidfMetaPath, "utf-8");
         tfidfMeta = JSON.parse(metaData);
-        console.log("TF-IDF metadata loaded successfully");
+        // console.log("TF-IDF metadata loaded successfully");
       }
 
       // Load the model
-      console.log("Loading model from:", modelPath);
+      // console.log("Loading model from:", modelPath);
       const handler = tfn.io.fileSystem(modelPath);
       model = await tf.loadGraphModel(handler);
-      console.log("Jailbreak model loaded successfully");
+      // console.log("Jailbreak model loaded successfully");
     } catch (error) {
       console.error("Error loading the model or metadata:", error);
       throw new Error("Failed to load model or metadata.");
@@ -74,7 +74,10 @@ function preprocessInput(input: string): tf.Tensor {
  * @param input The input string to analyze.
  * @returns A promise resolving to a boolean indicating jailbreak detection.
  */
-export async function isJailbreak(input: string): Promise<boolean> {
+export async function isJailbreak(
+  input: string,
+  threshold: number = 0.5
+): Promise<boolean> {
   if (!model) {
     throw new Error("Model not loaded. Call loadJailbreak() first.");
   }
@@ -86,6 +89,5 @@ export async function isJailbreak(input: string): Promise<boolean> {
   inputTensor.dispose();
   prediction.dispose();
 
-  // Assume index 1 corresponds to "jailbreak"
-  return probabilities[1] > 0.5;
+  return probabilities[1] > threshold;
 }

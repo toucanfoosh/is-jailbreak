@@ -1,6 +1,14 @@
 const fs = require("fs");
 const path = require("path");
 
+// 0) Check if dist/models exists
+if (!fs.existsSync("../dist")) {
+    fs.mkdirSync("../dist");
+}
+if (!fs.existsSync("../dist/models")) {
+    fs.mkdirSync("../dist/models");
+}
+
 // 1) Load your model.json
 const modelJson = JSON.parse(fs.readFileSync("./models/js_graph_model/model.json", "utf-8"));
 
@@ -18,10 +26,10 @@ if (modelJson.weightsManifest && Array.isArray(modelJson.weightsManifest)) {
 }
 
 // Write them to separate JSON files for convenience
-// fs.writeFileSync("../models/modelTopology.json", JSON.stringify(modelTopology));
-// fs.writeFileSync("../models/weightSpecs.json", JSON.stringify(weightSpecs));
+// fs.writeFileSync("../dist/models/modelTopology.json", JSON.stringify(modelTopology));
+// fs.writeFileSync("../dist/models/weightSpecs.json", JSON.stringify(weightSpecs));
 
-console.log("Extracted modelTopology.json and weightSpecs.json");
+// console.log("Extracted modelTopology.json and weightSpecs.json");
 
 // Suppose your model.json listed the bin files in this order:
 const binFiles = ["models/js_graph_model/group1-shard1of2.bin", "models/js_graph_model/group1-shard2of2.bin"];
@@ -37,20 +45,22 @@ let base64Str = combined.toString("base64");
 
 // 4) Save to a JSON file
 // fs.writeFileSync(
-//     "../models/weightDataBase64.json",
+//     "../dist/models/weightDataBase64.json",
 //     JSON.stringify(base64Str)
 // );
 
-console.log("Created weightDataBase64.json");
+// console.log("Created weightDataBase64.json");
 
 // Copy tfidf_vocab over to src
-fs.copyFileSync("./models/tfidf_vocab.json", "../models/tfidf_vocab.json");
+fs.copyFileSync("./models/tfidf_vocab.json", "../dist/models/tfidf_vocab.json");
 
 // Copy js_graph_model dir to src
-const srcDir = "../models";
+const srcDir = "../dist/models";
 if (!fs.existsSync(srcDir)) {
     fs.mkdirSync(srcDir);
 }
 fs.readdirSync("./models/js_graph_model").forEach((f) => {
     fs.copyFileSync(`./models/js_graph_model/${f}`, `${srcDir}/${f}`);
 });
+
+console.log("Extraction Complete")
